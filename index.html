@@ -54,19 +54,22 @@ i[data-lucide]{width:1em;height:1em;stroke-width:1.6;vertical-align:-.14em}
 .gate .act.green{background:#fff;border-color:#fff;color:#141414}
 
 /* ---- hero ---- */
-.hero{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px 22px 20px;margin-bottom:14px}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px 24px 22px;margin-bottom:16px}
 .herotop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px}
 .hk{font:600 11.5px/1 var(--sf);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .hg{font:700 27px/1.05 var(--cond);text-transform:uppercase;letter-spacing:.01em;margin-top:6px}
 .havatar{width:44px;height:44px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font:800 19px var(--cond);flex:0 0 auto}
-.bl{font:600 11px/1 var(--sf);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:20px}
+.herobody{margin-top:22px}
+.bl{font:600 11px/1 var(--sf);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .bn{font:800 46px/.95 var(--cond);letter-spacing:-1px;font-variant-numeric:tabular-nums;margin-top:6px}
-.hstats{display:flex;gap:10px;margin-top:20px}
+.hstats{display:flex;gap:10px;margin-top:18px}
 .hstat{flex:1;background:var(--soft);border-radius:14px;padding:13px 14px}
 .hstat b{display:block;font:800 25px/1 var(--cond);font-variant-numeric:tabular-nums}
 .hstat span{display:block;font:500 11px/1.25 var(--sf);color:var(--muted);margin-top:5px}
 
 /* ---- sections (accordion cards) ---- */
+.secgrid{display:grid;gap:14px}
+.secgrid .sec{margin-bottom:0}
 .sec{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
 .sechead{display:flex;align-items:center;gap:13px;padding:17px 18px;cursor:pointer;user-select:none}
 .sh-ic{width:36px;height:36px;border-radius:11px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto}
@@ -131,14 +134,15 @@ i[data-lucide]{width:1em;height:1em;stroke-width:1.6;vertical-align:-.14em}
 .c-si{background:var(--ink);color:#fff}.c-no{background:var(--soft);color:var(--muted)}
 
 /* ---- progress steps (splits & lanzamientos) ---- */
-.steps{display:flex;gap:6px;margin-top:14px}
-.step{flex:1 1 0;min-width:0;border:none;background:transparent;padding:0;cursor:pointer;text-align:center;font:600 9.5px/1.15 var(--sf);color:var(--muted2);letter-spacing:.02em;text-transform:uppercase}
-.step::before{content:"";display:block;height:6px;border-radius:4px;background:var(--line);margin-bottom:7px;transition:.2s}
-.step.sdone{color:var(--muted)}
-.step.sdone::before{background:var(--ink)}
-.step.scur{color:var(--ink);font-weight:800}
-.step.scur::before{background:var(--ink)}
-.step:hover::before{background:var(--muted2)}
+.progress{margin-top:14px}
+.steps{display:flex;gap:5px}
+.step{flex:1 1 0;min-width:0;height:9px;border:none;border-radius:5px;background:var(--line);padding:0;cursor:pointer;transition:.18s}
+.step.sdone,.step.scur{background:var(--ink)}
+.step.scur{box-shadow:0 0 0 3px rgba(20,20,20,.12)}
+.step:hover{background:var(--muted2)}
+.stepcap{display:flex;align-items:baseline;gap:9px;margin-top:11px;flex-wrap:wrap}
+.stepnow{font:700 14px var(--cond);text-transform:uppercase;letter-spacing:.03em;color:var(--ink)}
+.stephint{font:500 11.5px var(--sf);color:var(--muted2)}
 
 /* ---- docs ---- */
 .docrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:13px}
@@ -190,6 +194,18 @@ i[data-lucide]{width:1em;height:1em;stroke-width:1.6;vertical-align:-.14em}
 .fab:hover{background:#000}
 .fab i[data-lucide]{width:18px;height:18px}
 @media(max-width:560px){.igrid{grid-template-columns:1fr}.fab .fabtxt{display:none}.fab{padding:14px}}
+@media(min-width:880px){
+  .wrap{max-width:1120px;padding:0 24px 90px}
+  .hero{padding:32px 34px 30px;margin-bottom:18px}
+  .hg{font-size:34px}
+  .herobody{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-top:26px}
+  .herobal{flex:0 0 auto}
+  .bn{font-size:62px;margin-top:8px}
+  .hstats{flex:1 1 auto;max-width:600px;margin-top:0}
+  .hstat{padding:16px 18px}
+  .hstat b{font-size:28px}
+  .secgrid{grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+}
 </style>
 </head>
 <body>
@@ -278,10 +294,11 @@ function render(){
   var av=((WHO||'M').trim().charAt(0)||'M').toUpperCase();
 
   var html='<div class="hero"><div class="herotop"><div><div class="hk">Sesión'+(WHO?' · '+esc(WHO):'')+'</div><div class="hg">'+greet+'</div></div><div class="havatar">'+esc(av)+'</div></div>'
-    +'<div class="bl">Por cobrar</div><div class="bn">$'+Math.round(saldo).toLocaleString('en-US')+'</div>'
+    +'<div class="herobody"><div class="herobal"><div class="bl">Por cobrar</div><div class="bn">$'+Math.round(saldo).toLocaleString('en-US')+'</div></div>'
     +'<div class="hstats"><div class="hstat"><b>'+pendA.length+'</b><span>Pendientes</span></div><div class="hstat"><b>'+SPL.length+'</b><span>Splits sin firmar</span></div><div class="hstat"><b>'+LAN.length+'</b><span>Lanzamientos</span></div></div>'
-    +'</div>';
+    +'</div></div>';
 
+  html+='<div class="secgrid">';
   html+=sec('info','Información de Maury','Datos y contactos del artista.','<div id="infoBox"></div>',true,'user-round','');
   html+=sec('res','Carpetas de trabajo','Accesos directos a las carpetas de Drive. Toca una tarjeta para abrirla.','<div id="resList" class="reslist"></div>',false,'folder','');
 
@@ -307,6 +324,7 @@ function render(){
     +'<div id="splList" style="margin-top:14px"></div>';
   html+=sec('spl','Splits sin firmar','Avance de cada split: Solicitado → En revisión → Firmado. Toca la siguiente etapa; al llegar a “Firmado” se guarda en Notion.',newSpl,false,'pen-line',SPL.length);
 
+  html+='</div>';
   app.innerHTML=html;
   document.getElementById('newBtn').onclick=function(){document.getElementById('newPanel').classList.toggle('open');};
   document.getElementById('ntCreate').onclick=createTaskUI;
@@ -390,21 +408,18 @@ function renderSpl(){
   var box=document.getElementById('splList');
   if(!SPL.length){box.innerHTML='<div class="empty">Todos los splits firmados. ✅</div>';return;}
   box.innerHTML=SPL.map(function(r){
-    var cur=SPLIT_STAGES.indexOf(r.Etapa||'Solicitado');
-    var steps=SPLIT_STAGES.map(function(s,i){var d=(cur>=0&&i<cur),c=(i===cur);return '<button class="step'+(d?' sdone':'')+(c?' scur':'')+'" data-s="stage" data-est="'+esc(s)+'">'+esc(s)+'</button>';}).join('');
     return '<div class="rowitem" data-sec="spl" data-id="'+esc(r.Id)+'" data-tarea="'+esc(r.Track)+'" data-etapa="'+esc(r.Etapa||'Solicitado')+'">'
       +'<div class="rh"><div><span class="rt">'+esc(r.Track)+'</span>'+(r.PctMaury?'<span class="rs"> · '+esc(r.PctMaury)+'% Maury</span>':'')+(r.Colaboradores?'<div class="rs" style="margin-top:4px">'+esc(r.Colaboradores)+'</div>':'')+'</div></div>'
-      +'<div class="steps">'+steps+'</div>'+docBlock('spl',r.Doc,findRes('split'))+'</div>';
+      +'<div class="progress">'+progressInner(SPLIT_STAGES,r.Etapa||'Solicitado','spl')+'</div>'+docBlock('spl',r.Doc,findRes('split'))+'</div>';
   }).join('');
 }
 
 /* ---- Lanzamientos ---- */
-function stepHtml(est){
-  var cur=RELEASE_STATES.indexOf(est);
-  return RELEASE_STATES.map(function(s,i){
-    var doneS=(cur>=0&&i<cur), isCur=(i===cur);
-    return '<button class="step'+(doneS?' sdone':'')+(isCur?' scur':'')+'" data-l="estado" data-est="'+esc(s)+'">'+esc(clean(s))+'</button>';
-  }).join('');
+function progressInner(states,est,kind){
+  var cur=states.indexOf(est);var da=kind==='spl'?'data-s="stage"':'data-l="estado"';
+  var segs=states.map(function(s,i){var d=(cur>=0&&i<cur),c=(i===cur);return '<button class="step'+(d?' sdone':'')+(c?' scur':'')+'" '+da+' data-est="'+esc(s)+'" title="'+esc(clean(s))+'"></button>';}).join('');
+  var name=clean(cur>=0?est:states[0]);
+  return '<div class="steps">'+segs+'</div><div class="stepcap"><span class="stepnow">'+esc(name)+'</span><span class="stephint">Etapa '+(Math.max(cur,0)+1)+' de '+states.length+' · toca para avanzar</span></div>';
 }
 function renderLan(){
   var box=document.getElementById('lanList');
@@ -412,7 +427,7 @@ function renderLan(){
   box.innerHTML=LAN.map(function(r){
     return '<div class="rowitem" data-sec="lan" data-id="'+esc(r.Id)+'" data-tarea="'+esc(r.Titulo)+'" data-estado="'+esc(r.Estado)+'">'
       +'<div class="rh"><div><span class="rt">'+esc(r.Titulo)+'</span>'+((r.Fecha||r.Sello)?'<div class="rs" style="margin-top:5px">'+[r.Fecha,r.Sello].filter(Boolean).map(esc).join(' · ')+'</div>':'')+'</div></div>'
-      +'<div class="steps">'+stepHtml(r.Estado)+'</div>'+docBlock('lan',r.Doc,findRes('lanzamiento'))+'</div>';
+      +'<div class="progress">'+progressInner(RELEASE_STATES,r.Estado,'lan')+'</div>'+docBlock('lan',r.Doc,findRes('lanzamiento'))+'</div>';
   }).join('');
 }
 
@@ -459,14 +474,14 @@ function splAct(row,btn){
   if(!est)return;
   run('setSplitStage',[id,n,est,WHO],function(){
     row.setAttribute('data-etapa',est);
-    if(est==='Firmado'){row.classList.add('done');tag(row,'firmado',false);toast('Split firmado en Notion');}
-    else{var cur=SPLIT_STAGES.indexOf(est);[].forEach.call(row.querySelectorAll('.step'),function(b,i){var d=(cur>=0&&i<cur),c=(i===cur);b.className='step'+(d?' sdone':'')+(c?' scur':'');b.textContent=b.getAttribute('data-est');});toast('Etapa: '+est);}
+    if(est==='Firmado'){row.classList.add('done');var pg=row.querySelector('.progress');if(pg)pg.innerHTML=progressInner(SPLIT_STAGES,est,'spl');tag(row,'firmado',false);toast('Split firmado en Notion');}
+    else{var pg2=row.querySelector('.progress');if(pg2)pg2.innerHTML=progressInner(SPLIT_STAGES,est,'spl');toast('Etapa: '+est);}
   },btn);
 }
 function lanAct(row,btn){
   var id=row.getAttribute('data-id'),n=row.getAttribute('data-tarea'),est=btn.getAttribute('data-est')||'';
   if(!est)return;
-  run('setRelease',[id,n,est,WHO],function(){row.setAttribute('data-estado',est);row.querySelector('.steps').innerHTML=stepHtml(est);toast('Etapa: '+clean(est));},btn);
+  run('setRelease',[id,n,est,WHO],function(){row.setAttribute('data-estado',est);var pg=row.querySelector('.progress');if(pg)pg.innerHTML=progressInner(RELEASE_STATES,est,'lan');toast('Etapa: '+clean(est));},btn);
 }
 function createTaskUI(){
   var tarea=document.getElementById('ntTarea').value,f=document.getElementById('ntFecha').value,est=document.getElementById('ntEstado').value,nota=document.getElementById('ntNota').value;
