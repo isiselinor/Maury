@@ -11,7 +11,7 @@
 
 var NV = '2022-06-28';
 var T_PEND='Pendientes', T_COB='Cobros', T_SPL='Splits', T_LAN='Lanzamientos', T_CAT='Catálogo';
-var T_LOG='Registro', T_RES='Recursos', T_INFO='Info', T_CFG='Config', T_GAS='Gastos';
+var T_LOG='Registro', T_RES='Recursos', T_INFO='Info', T_CFG='Config', T_GAS='Gastos', T_CRE='Creditos';
 
 // Estados de la base central (pendientes)
 var S = { DONE:'✅ Hecho', PROG:'En Ejecución', BLOCK:'🚫 Trabado', TODO:'📥 Pendientes por asignar' };
@@ -24,6 +24,7 @@ var CFG_DEFAULTS = [
   ['ID base del artista', '35faac7f7cb380ebba68df255b2a012f'],
   ['ID base catálogo (producción)', 'dea48c04ffbe406d9b52621cb922e489'],
   ['ID base gastos', '1d0839562c7148b5885b11b22baeacfe'],
+  ['ID base créditos', '5346c00b81cd4203bdb79f8117afe6b7'],
   ['Carpeta Drive del catálogo (ID o link)', ''],
   ['Token de Samply (co-manager)', ''],
   ['Project ID de Samply (solo ese proyecto)', ''],
@@ -57,6 +58,7 @@ function cfg_(){
     dbArtista:g('ID base del artista','').replace(/-/g,''),
     dbCatalogo:g('ID base catálogo (producción)','').replace(/-/g,''),
     dbGastos: g('ID base gastos','').replace(/-/g,''),
+    dbCreditos: g('ID base créditos','').replace(/-/g,''),
     driveCat: g('Carpeta Drive del catálogo (ID o link)',''),
     samplyToken:  g('Token de Samply (co-manager)',''),
     samplyProject:g('Project ID de Samply (solo ese proyecto)',''),
@@ -216,6 +218,16 @@ function syncAll(){
     writeTab_(T_GAS, ['Concepto','Cancion','SongId','Fase','Monto','Fecha','Notas','Id'], gas);
   }
 
+  // 5) Créditos / ficha técnica por tema → pestaña Creditos
+  if(C.dbCreditos){
+    var cre=[];
+    queryDB_(C.dbCreditos).forEach(function(p){
+      var pr=p.properties||{};
+      cre.push([ pTit(pr,'Nombre'), pSel(pr,'Rol'), pChk(pr,'Acreditado')?'sí':'no', pTxt(pr,'Observaciones'), pTxt(pr,'Canción'), pTxt(pr,'SongId'), p.id ]);
+    });
+    writeTab_(T_CRE, ['Nombre','Rol','Acreditado','Obs','Cancion','SongId','Id'], cre);
+  }
+
   PropertiesService.getScriptProperties().setProperty('LAST_SYNC', new Date().toISOString());
 }
 
@@ -229,6 +241,7 @@ function doGet(){
   t.lanJson =JSON.stringify(readTab_(T_LAN));
   t.catJson =JSON.stringify(readTab_(T_CAT));
   t.gasJson =JSON.stringify(readTab_(T_GAS));
+  t.credJson=JSON.stringify(readTab_(T_CRE));
   t.resJson =JSON.stringify(readTab_(T_RES));
   t.infoJson=JSON.stringify(readTab_(T_INFO));
   var Csafe={}; for(var k in C){ if(k!=='samplyToken'&&k!=='samplySecret') Csafe[k]=C[k]; }
@@ -379,6 +392,38 @@ function delGasto(id, who){
     if(sh){ var v=sh.getRange(1,1,sh.getLastRow(),sh.getLastColumn()).getValues(); var idc=v[0].indexOf('Id');
       for(var r=v.length-1;r>=1;r--){ if(String(v[r][idc])===String(id)){ sh.deleteRow(r+1); break; } } } }catch(e){}
   log_('-','Gasto eliminado','',who);
+  return {ok:true};
+}
+function createCredito(songId, cancion, nombre, rol, acreditado, obs, who){
+  var C=cfg_();
+  if(!C.dbCreditos) throw new Error('Falta la base de créditos en Config.');
+  if(!nombre||!nombre.trim()) throw new Error('Falta el nombre del colaborador.');
+  var ac=(acreditado===true||acreditado==='sí'||acreditado==='true');
+  var props={ 'Nombre':{'title':[{'text':{'content':nombre.trim().substring(0,1900)}}]}, 'Acreditado':{'checkbox':ac} };
+  if(rol) props['Rol']={'select':{'name':rol}};
+  if(obs) props['Observaciones']={'rich_text':[{'text':{'content':String(obs).substring(0,1900)}}]};
+  if(cancion) props['Canción']={'rich_text':[{'text':{'content':String(cancion).substring(0,1900)}}]};
+  if(songId)  props['SongId']={'rich_text':[{'text':{'content':String(songId)}}]};
+  var res=UrlFetchApp.fetch('https://api.notion.com/v1/pages',{method:'post',contentType:'application/json',headers:H_(),payload:JSON.stringify({parent:{database_id:C.dbCreditos},properties:props}),muteHttpExceptions:true});
+  var j=JSON.parse(res.getContentText()); if(j.object==='error') throw new Error(j.message||'Error al crear crédito');
+  try{ SpreadsheetApp.getActive().getSheetByName(T_CRE).appendRow([nombre.trim(), rol||'', ac?'sí':'no', obs||'', cancion||'', songId||'', j.id]); }catch(e){}
+  log_(cancion||'-', 'Crédito: '+nombre.trim()+' ('+(rol||'—')+', '+(ac?'acreditado':'sin crédito')+')','',who);
+  return {ok:true,row:{Nombre:nombre.trim(),Rol:rol||'',Acreditado:ac?'sí':'no',Obs:obs||'',Cancion:cancion||'',SongId:songId||'',Id:j.id}};
+}
+function toggleCredito(id, acreditado, who){
+  if(!id) return {ok:false};
+  var ac=(acreditado===true||acreditado==='sí'||acreditado==='true');
+  try{ UrlFetchApp.fetch('https://api.notion.com/v1/pages/'+id,{method:'patch',contentType:'application/json',headers:H_(),payload:JSON.stringify({properties:{'Acreditado':{'checkbox':ac}}}),muteHttpExceptions:true}); }catch(e){}
+  try{ setCell_(T_CRE,'Id',id,'Acreditado',ac?'sí':'no'); }catch(e){}
+  return {ok:true};
+}
+function delCredito(id, who){
+  if(!id) return {ok:false};
+  try{ UrlFetchApp.fetch('https://api.notion.com/v1/pages/'+id,{method:'patch',contentType:'application/json',headers:H_(),payload:JSON.stringify({archived:true}),muteHttpExceptions:true}); }catch(e){}
+  try{ var sh=SpreadsheetApp.getActive().getSheetByName(T_CRE);
+    if(sh){ var v=sh.getRange(1,1,sh.getLastRow(),sh.getLastColumn()).getValues(); var idc=v[0].indexOf('Id');
+      for(var r=v.length-1;r>=1;r--){ if(String(v[r][idc])===String(id)){ sh.deleteRow(r+1); break; } } } }catch(e){}
+  log_('-','Crédito eliminado','',who);
   return {ok:true};
 }
 function catSubFolder(parent, nombre){
